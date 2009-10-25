@@ -3,6 +3,7 @@ class NeedMore(Exception):
 
 
 class Node(object):
+    """Internal representation of Trie nodes."""
     __slots__ = 'parent key nodes value'.split()
     no_value = object()
 
@@ -30,11 +31,56 @@ class Node(object):
 
 
 class Trie(object):
+    """A simple prefix tree (trie) implementation.
+
+    If attempting to access a node without a value, but with descendents,
+    NeedMore will be raised. If there are no descendents, KeyError will be
+    raised.
+
+    Usage:
+
+    >>> import trie
+    >>> from pprint import pprint
+    >>> t = trie.Trie()
+    >>> t['foobaz'] = 'Here is a foobaz.'
+    >>> t['foobar'] = 'This is a foobar.'
+    >>> t['fooqat'] = "What's a fooqat?"
+    >>> pprint(list(t))
+    [['f', 'o', 'o', 'b', 'a', 'r'],
+     ['f', 'o', 'o', 'b', 'a', 'z'],
+     ['f', 'o', 'o', 'q', 'a', 't']]
+    >>> pprint(list(t.iteritems()))
+    [(['f', 'o', 'o', 'b', 'a', 'r'], 'This is a foobar.'),
+     (['f', 'o', 'o', 'b', 'a', 'z'], 'Here is a foobaz.'),
+     (['f', 'o', 'o', 'q', 'a', 't'], "What's a fooqat?")]
+    >>> t['foo']
+    Traceback (most recent call last):
+        ...
+    NeedMore
+    >>> t['fooqux']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'fooqux'
+    >>> t.children('fooba')
+    {'r': 'This is a foobar.', 'z': 'Here is a foobaz.'}
+    >>> del t['foobaz']
+    >>> pprint(list(t.iteritems()))
+    [(['f', 'o', 'o', 'b', 'a', 'r'], 'This is a foobar.'),
+     (['f', 'o', 'o', 'q', 'a', 't'], "What's a fooqat?")]
+    """
+
     def __init__(self, root_data=Node.no_value, mapping=()):
+        """Initialize a Trie instance.
+
+        Args (both optional):
+            root_data:  value of the root node (ie. Trie('hello')[()] == 'hello').
+            mapping:    a sequence of (key, value) pairs to initialize with.
+        """
         self.root = Node(None, None, {}, root_data)
         self.extend(mapping)
 
     def extend(self, mapping):
+        """Update the Trie with a sequence of (key, value) pairs."""
         for k, v in mapping:
             self[k] = v
 
@@ -74,19 +120,36 @@ class Trie(object):
             n = n.parent
 
     def children(self, k):
+        """Return a dict of the immediate children of the given key.
+
+        Example:
+        >>> t = Trie()
+        >>> t['foobaz'] = 'Here is a foobaz.'
+        >>> t['foobar'] = 'This is a foobar.'
+        >>> t.children('fooba')
+        {'r': 'This is a foobar.', 'z': 'Here is a foobaz.'}
+        """
         n = self._getnode(k)
         return dict((k, n.nodes[k].value)
                     for k in n.nodes
                     if n.nodes[k].value is not Node.no_value)
 
     def __iter__(self):
+        """Yield the keys in order."""
         for node in self.root.walk():
             yield node.keypath
 
     def iteritems(self):
+        """Yield (key, value) pairs in order."""
         for node in self.root.walk():
             yield node.keypath, node.value
 
     def itervalues(self):
+        """Yield values in order."""
         for node in self.root.walk():
             yield node.value
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
