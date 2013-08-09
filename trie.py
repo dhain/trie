@@ -114,7 +114,7 @@ class Trie(object):
             raise KeyError(k)
         n.value = Node.no_value
         while True:
-            if n.nodes or not n.parent:
+            if n.nodes or not n.parent or n.value is not Node.no_value:
                 break
             del n.parent.nodes[n.key]
             n = n.parent

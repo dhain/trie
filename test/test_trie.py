@@ -45,6 +45,14 @@ def test_delitem_keyerror():
     assert_raises(KeyError, t.__delitem__, 'foo')
 
 
+def test_delitem_node():
+    t = trie.Trie()
+    t['foobar'] = 'bar'
+    t['foobarbaz'] = 'baz'
+    del t['foobarbaz']
+    assert t['foobar'] == 'bar'
+
+
 def test_children():
     t = trie.Trie()
     t['foo'] = 'bar'
